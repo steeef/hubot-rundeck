@@ -1,4 +1,8 @@
-This is a pretty opinionated solution that we use internally. It's strictly designed to post to slack via the API and it uses our notion of wrapping EVERYTHING with a role. All of our plugins automatically use brain storage as well. To be able to execute anything with hubot, you have to be a `rundeck_admin` role user.
+This is a pretty opinionated solution that we use internally. It's strictly designed to post to slack via the API and it uses our notion of wrapping EVERYTHING with a role. All of our plugins automatically use brain storage as well. To be able to execute anything with hubot, you have to be a `rundeck_admin` role user (per the `hubot-auth` plugin).
+
+`HUBOT_RUNDECK_URL` should be set to the root URL of your Rundeck server, not
+including the path to the current api version. 
+**NOTE**: Currently relying on Rundeck API version 12.
 
 You should be able to tease out the rundeck API stuff specifically.
 

@@ -91,8 +91,9 @@ class Rundeck
       if err?
         @logger.error JSON.stringify(err)
       else
-        parser.parseString body, (e, json) ->
-          cb json
+        @logger.debug body
+        parser.parseString body, (e, result) ->
+          cb JSON.stringify(result)
 
 class Job
   constructor: (data) ->
@@ -188,7 +189,7 @@ module.exports = (robot) ->
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().run name, null, (job, results) ->
         if job
-          msg.send "Running job #{name}: #{results.executions[0].execution[0]['$'].href}"
+          msg.send "Running job #{name}: #{results.result.executions[0].execution[0]['$'].href}"
         else
           msg.send "Could not execute Rundeck job \"#{name}\"."
     else
@@ -204,7 +205,7 @@ module.exports = (robot) ->
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().run name, query, (job, results) ->
         if job
-          msg.send "Running job #{name}: #{results.executions[0].execution[0]['$'].href}"
+          msg.send "Running job #{name}: #{results.result.executions[0].execution[0]['$'].href}"
         else
           msg.send "Could not execute Rundeck job \"#{name}\"."
     else

@@ -189,8 +189,8 @@ module.exports = (robot) ->
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().run name, null, (job, results) ->
         if job
-          #msg.send "Running job #{name}: #{results.result.executions[0].execution[0]['$'].href}"
-          msg.send "Running job #{name}: #{results}"
+          robot.logger.debug util.inspect(results, false, null)
+          msg.send "Running job #{name}: #{results.result.executions[0].execution[0]['$'].href}"
         else
           msg.send "Could not execute Rundeck job \"#{name}\"."
     else

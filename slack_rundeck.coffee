@@ -34,7 +34,6 @@ url = require 'url'
 inspect = require('util').inspect
 strftime = require('strftime')
 Parser = require('xml2js').Parser
-Formatter = require('../src/formatter').formatter
 
 class Rundeck
   constructor: (@robot) ->
@@ -72,7 +71,7 @@ class Rundeck
   cache: -> @cache
   parser: -> new Parser()
   jobs: -> new Jobs(@)
-  
+
   save: ->
     @logger.info("Saving cached rundeck jobs to brain")
     @brain.rundeck = @cache
@@ -105,14 +104,8 @@ class Job
   format: ->
     "Name: #{@name}\nId: #{@id}\nDescription: #{@description}\nGroup: #{@group}\nProject: #{@project}"
 
-  formatSlack: ->
-    "*Name:* #{@name}\n*ID:* #{@id}\n*Description:* #{@description}\n*Group:* #{@group}\n*Project:* #{@project}"
-
   formatList: ->
     "#{@name} - #{@description}"
-
-  formatListSlack: ->
-    "*#{@name}* - #{@description}"
 
 class Jobs
   constructor: (@rundeck) ->
@@ -147,14 +140,14 @@ class Jobs
 module.exports = (robot) ->
   logger = robot.logger
   rundeck = new Rundeck(robot)
-  formatter = new Formatter(robot)
 
   # hubot rundeck list
   robot.respond /rundeck (?:list|jobs)$/i, (msg) ->
     robot.authorize msg, rundeck.adminRole, ->
       rundeck.jobs().list (jobs) ->
         if jobs.length > 0
-          msg.send formatter.formatList(jobs)
+          for job in jobs
+            msg.send job.formatList()
         else
           msg.send "No Rundeck jobs found."
 
@@ -177,7 +170,7 @@ module.exports = (robot) ->
     robot.authorize msg, rundeck.adminRole, ->
       rundeck.jobs().find name, (job) ->
         if job
-          msg.send formatter.format(job)
+          msg.send job.format()
         else
           msg.send "Could not find Rundeck job \"#{name}\"."
 

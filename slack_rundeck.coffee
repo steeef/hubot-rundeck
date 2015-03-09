@@ -5,6 +5,7 @@
 #   "underscore": "^1.6.0"
 #   "strftime": "^0.8.0"
 #   "xml2js": "^0.4.1"
+#   "hubot-auth"
 #
 # Configuration:
 #   HUBOT_RUNDECK_URL
@@ -143,47 +144,55 @@ module.exports = (robot) ->
 
   # hubot rundeck list
   robot.respond /rundeck (?:list|jobs)$/i, (msg) ->
-    robot.authorize msg, rundeck.adminRole, ->
+    if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().list (jobs) ->
         if jobs.length > 0
           for job in jobs
             msg.send job.formatList()
         else
           msg.send "No Rundeck jobs found."
+    else
+        msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."
 
   # hubot rundeck output <job-id>
   # sample url: 
   robot.respond /rundeck output (.+)/i, (msg) ->
     jobid = msg.match[1]
 
-    robot.authorize msg, rundeck.adminRole, ->
+    if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.getOutput "execution/#{jobid}/output", (output) ->
         if output
           msg.send "```#{output}```"
         else
           msg.send "Could not find output for Rundeck job \"#{jobid}\"."
+    else
+        msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."
 
   # hubot rundeck show <name>
   robot.respond /rundeck show ([\w -_]+)/i, (msg) ->
     name = msg.match[1]
 
-    robot.authorize msg, rundeck.adminRole, ->
+    if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().find name, (job) ->
         if job
           msg.send job.format()
         else
           msg.send "Could not find Rundeck job \"#{name}\"."
+    else
+        msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."
 
   # hubot rundeck run <name>
   robot.respond /rundeck run ([\w -_]+)/i, (msg) ->
     name = msg.match[1]
 
-    robot.authorize msg, rundeck.adminRole, ->
+    if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().run name, null, (job, results) ->
         if job
           msg.send "Running job #{name}: #{results.result.executions[0].execution[0]['$'].href}"
         else
           msg.send "Could not execute Rundeck job \"#{name}\"."
+    else
+        msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."
 
   # takes all but last word as the name of our job
   # hubot rundeck ad-hoc <name> <nodename>
@@ -192,9 +201,11 @@ module.exports = (robot) ->
     params = { argString: "-nodename #{msg.match[2].trim().toLowerCase()}" }
     query = "?#{querystring.stringify(params)}"
 
-    robot.authorize msg, rundeck.adminRole, ->
+    if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().run name, query, (job, results) ->
         if job
           msg.send "Running job #{name}: #{results.result.executions[0].execution[0]['$'].href}"
         else
           msg.send "Could not execute Rundeck job \"#{name}\"."
+    else
+        msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."

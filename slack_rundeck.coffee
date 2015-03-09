@@ -8,7 +8,7 @@
 #   "hubot-auth"
 #
 # Configuration:
-#   HUBOT_RUNDECK_URL
+#   HUBOT_RUNDECK_URL - the URL including the api path to Rundeck
 #   HUBOT_RUNDECK_TOKEN
 #   HUBOT_RUNDECK_PROJECT
 #
@@ -190,7 +190,7 @@ module.exports = (robot) ->
       rundeck.jobs().run name, null, (job, results) ->
         if job
           robot.logger.debug inspect(results, false, null)
-          msg.send "Running job #{name}: #{results.result.executions[0].execution[0]['$'].href}"
+          msg.send "Running job #{name}: #{results.executions.execution[0]['$'].href}"
         else
           msg.send "Could not execute Rundeck job \"#{name}\"."
     else
@@ -206,7 +206,7 @@ module.exports = (robot) ->
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().run name, query, (job, results) ->
         if job
-          msg.send "Running job #{name}: #{results.result.executions[0].execution[0]['$'].href}"
+          msg.send "Running job #{name}: #{results.executions.execution[0]['$'].href}"
         else
           msg.send "Could not execute Rundeck job \"#{name}\"."
     else

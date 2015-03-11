@@ -145,7 +145,7 @@ module.exports = (robot) ->
   rundeck = new Rundeck(robot)
 
   # hubot rundeck list
-  robot.respond /rundeck (?:list|jobs)$/i, (msg) ->
+  robot.respond /(?:rd|rundeck) (?:list|jobs)$/i, (msg) ->
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().list (jobs) ->
         if jobs.length > 0
@@ -158,7 +158,7 @@ module.exports = (robot) ->
 
   # hubot rundeck output <job-id>
   # sample url: 
-  robot.respond /rundeck output (.+)/i, (msg) ->
+  robot.respond /(?:rd|rundeck) output (.+)/i, (msg) ->
     jobid = msg.match[1]
 
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
@@ -171,7 +171,7 @@ module.exports = (robot) ->
         msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."
 
   # hubot rundeck show <name>
-  robot.respond /rundeck show ([\w -_]+)/i, (msg) ->
+  robot.respond /(?:rd|rundeck) show ([\w -_]+)/i, (msg) ->
     name = msg.match[1]
 
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
@@ -184,7 +184,7 @@ module.exports = (robot) ->
         msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."
 
   # hubot rundeck run <name>
-  robot.respond /rundeck run ([\w -_]+)/i, (msg) ->
+  robot.respond /(?:rd|rundeck) run ([\w -_]+)/i, (msg) ->
     name = msg.match[1]
 
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
@@ -199,7 +199,7 @@ module.exports = (robot) ->
 
   # takes all but last word as the name of our job
   # hubot rundeck ad-hoc <name> <nodename>
-  robot.respond /rundeck (?:ad[ -]?hoc) ([\w -_]+) ([\w-]+)/i, (msg) ->
+  robot.respond /(?:rd|rundeck) (?:ad[ -]?hoc) ([\w -_]+) ([\w-]+)/i, (msg) ->
     name = msg.match[1]
     params = { argString: "-nodename #{msg.match[2].trim().toLowerCase()}" }
     query = "?#{querystring.stringify(params)}"

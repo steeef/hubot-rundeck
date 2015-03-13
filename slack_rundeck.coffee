@@ -10,14 +10,15 @@
 # Configuration:
 #   HUBOT_RUNDECK_URL - root URL for Rundeck, not including api path
 #   HUBOT_RUNDECK_TOKEN
+#   HUBOT_RUNDECK_ROOM - default room for notifications from webhooks
 #   HUBOT_RUNDECK_PROJECT
 #
 # Commands:
-#   hubot rundeck (list|jobs) - List all Rundeck jobs
-#   hubot rundeck show <name> - Show detailed info for the job <name>
-#   hubot rundeck run <name> - Execute a Rundeck job <name>
-#   hubot rundeck (adhoc|ad-hoc|ad hoc) <name> <nodename> - Execute an ad-hoc Rundeck job <name> on node <nodename>
-#   hubot rundeck output <id> - Print the output of execution <id>
+#   hubot (rd|rundeck) (list|jobs) - List all Rundeck jobs
+#   hubot (rd|rundeck) show <name> - Show detailed info for the job <name>
+#   hubot (rd|rundeck) run <name> - Execute a Rundeck job <name>
+#   hubot (rd|rundeck) (adhoc|ad-hoc|ad hoc) <name> <nodename> - Execute an ad-hoc Rundeck job <name> on node <nodename>
+#   hubot (rd|rundeck) output <id> - Print the output of execution <id>
 #
 # Notes:
 #   REQUIRES Rundeck API version 12
@@ -44,6 +45,7 @@ class Rundeck
     @baseUrl = "#{process.env.HUBOT_RUNDECK_URL}/api/12"
     @authToken = process.env.HUBOT_RUNDECK_TOKEN
     @project = process.env.HUBOT_RUNDECK_PROJECT
+    @room = process.env.HUBOT_RUNDECK_ROOM
     @adminRole = "rundeck_admin"
 
     @headers =
@@ -95,6 +97,17 @@ class Rundeck
         @logger.debug body
         parser.parseString body, (e, result) ->
           cb result
+
+  notify: (req) ->
+    parser = new Parser()
+    parser.parseString req, (err, result) ->
+      if err?
+        @logger.error JSON.stringify(err)
+      else
+        @logger.debug inspect(result, false, null)
+        status = result.notification['$'].status
+        job = result.notification.executions[0].execution.job
+        @robot.messageRoom @room, "#{job} - #{status}"
 
 class Job
   constructor: (data) ->
@@ -212,3 +225,9 @@ module.exports = (robot) ->
           msg.send "Could not execute Rundeck job \"#{name}\"."
     else
         msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."
+
+  # allows webhook from Rundeck for job notifications
+  robot.router.post "/hubot/rundeck-webhook", (req, res) ->
+    parser = new Parser()
+    results = parser.parseString req.body.payload
+    rundeck.notify (req.body.payload)

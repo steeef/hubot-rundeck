@@ -228,4 +228,4 @@ module.exports = (robot) ->
 
   # allows webhook from Rundeck for job notifications
   robot.router.post "/hubot/rundeck-webhook", (req, res) ->
-    rundeck.notify (req.body.payload)
+    rundeck.notify (req.body)

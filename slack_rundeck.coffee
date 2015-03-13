@@ -10,7 +10,6 @@
 # Configuration:
 #   HUBOT_RUNDECK_URL - root URL for Rundeck, not including api path
 #   HUBOT_RUNDECK_TOKEN
-#   HUBOT_RUNDECK_ROOM - default room for notifications from webhooks
 #   HUBOT_RUNDECK_PROJECT
 #
 # Commands:
@@ -60,7 +59,6 @@ class Rundeck
 
     @cache = {}
     @cache['jobs'] = {}
-    @logger = @robot.logger
     @brain = @robot.brain.data
 
     robot.brain.on 'loaded', =>
@@ -97,17 +95,6 @@ class Rundeck
         @logger.debug body
         parser.parseString body, (e, result) ->
           cb result
-
-  notify: (req) ->
-    parser = new Parser()
-    parser.parseString req, (err, result) ->
-      if err?
-        @logger.error JSON.stringify(err)
-      else
-        @logger.debug inspect(result, false, null)
-        status = result.notification['$'].status
-        job = result.notification.executions[0].execution.job
-        @robot.messageRoom @room, "#{job} - #{status}"
 
 class Job
   constructor: (data) ->
@@ -227,5 +214,15 @@ module.exports = (robot) ->
         msg.send "#{msg.envelope.user}: you do not have #{rundeck.adminRole} role."
 
   # allows webhook from Rundeck for job notifications
-  robot.router.post "/hubot/rundeck-webhook", (req, res) ->
-    rundeck.notify (req.body)
+  # It would be great to get the information from the body of the request, but
+  # unfortunately, Rundeck's built-in webhooks only use XML, and Hubot's
+  # Express router expects JSON. So we'll grab from the URI params.
+  # expects:
+  # http://hubot:port/hubot/rundeck-webhook/roomname/?status=<status>&job=<job>&execution_id=<execution_id>
+  robot.router.post "/hubot/rundeck-webhook/:room", (req, res) ->
+    query = querystring.parse(url.parse(req.url).query)
+    status = query.status
+    job = query.job
+    execution_id = query.execution_id
+    robot.messageRoom req.params.room, "#{job} #{execution_id} - #{status}"
+    res.end "ok"

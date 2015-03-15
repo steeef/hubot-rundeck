@@ -41,7 +41,8 @@ class Rundeck
   constructor: (@robot) ->
     @logger = @robot.logger
 
-    @baseUrl = "#{process.env.HUBOT_RUNDECK_URL}/api/12"
+    @baseUrl = process.env.HUBOT_RUNDECK_URL
+    @apiUrl = "#{process.env.HUBOT_RUNDECK_URL}/api/12"
     @authToken = process.env.HUBOT_RUNDECK_TOKEN
     @project = process.env.HUBOT_RUNDECK_PROJECT
     @room = process.env.HUBOT_RUNDECK_ROOM
@@ -79,7 +80,7 @@ class Rundeck
     @brain.rundeck = @cache
 
   getOutput: (url, cb) ->
-    @robot.http("#{@baseUrl}/#{url}").headers(@plainTextHeaders).get() (err, res, body) =>
+    @robot.http("#{@apiUrl}/#{url}").headers(@plainTextHeaders).get() (err, res, body) =>
       if err?
         @logger.err JSON.stringify(err)
       else
@@ -88,7 +89,7 @@ class Rundeck
   get: (url, cb) ->
     parser = new Parser()
 
-    @robot.http("#{@baseUrl}/#{url}").headers(@headers).get() (err, res, body) =>
+    @robot.http("#{@apiUrl}/#{url}").headers(@headers).get() (err, res, body) =>
       if err?
         @logger.error JSON.stringify(err)
       else
@@ -218,11 +219,11 @@ module.exports = (robot) ->
   # unfortunately, Rundeck's built-in webhooks only use XML, and Hubot's
   # Express router expects JSON. So we'll grab from the URI params.
   # expects:
-  # http://hubot:port/hubot/rundeck-webhook/roomname/?status=<status>&job=<job>&execution_id=<execution_id>
+  # http://hubot:port/hubot/rundeck-webhook/roomname/?status=${execution.status}&job=${job.name}&execution_id=${execution.id}
   robot.router.post "/hubot/rundeck-webhook/:room", (req, res) ->
     query = querystring.parse(url.parse(req.url).query)
     status = query.status
     job = query.job
     execution_id = query.execution_id
-    robot.messageRoom req.params.room, "#{job} #{execution_id} - #{status}"
+    robot.messageRoom req.params.room, ":rundeck: Rundeck: #{job} ##{execution_id} - *#{status}*: #{baseUrl}/project/#{@project}/execution/show/#{execution_id}"
     res.end "ok"

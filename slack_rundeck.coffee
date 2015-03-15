@@ -225,5 +225,5 @@ module.exports = (robot) ->
     status = query.status
     job = query.job
     execution_id = query.execution_id
-    robot.messageRoom req.params.room, ":rundeck: Rundeck: #{job} ##{execution_id} - *#{status}*: #{baseUrl}/project/#{@project}/execution/show/#{execution_id}"
+    robot.messageRoom req.params.room, ":rundeck: Rundeck: #{job} #{execution_id} - *#{status}*: #{baseUrl}/project/#{@project}/execution/show/#{execution_id}"
     res.end "ok"

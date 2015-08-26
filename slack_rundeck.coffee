@@ -160,7 +160,7 @@ module.exports = (robot) ->
   # hubot rundeck output <job-id>
   # sample url: 
   robot.respond /(?:rd|rundeck) output (.+)/i, (msg) ->
-    jobid = msg.match[1]
+    jobid = msg.match[1].trim()
 
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.getOutput "execution/#{jobid}/output", (output) ->
@@ -173,7 +173,7 @@ module.exports = (robot) ->
 
   # hubot rundeck show <name>
   robot.respond /(?:rd|rundeck) show ([\w -_]+)/i, (msg) ->
-    name = msg.match[1]
+    name = msg.match[1].trim()
 
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().find name, (job) ->
@@ -186,7 +186,7 @@ module.exports = (robot) ->
 
   # hubot rundeck run <name>
   robot.respond /(?:rd|rundeck) run ([\w -_]+)/i, (msg) ->
-    name = msg.match[1]
+    name = msg.match[1].trim()
 
     if robot.auth.hasRole(msg.envelope.user, rundeck.adminRole)
       rundeck.jobs().run name, null, (job, results) ->
@@ -201,7 +201,7 @@ module.exports = (robot) ->
   # takes all but last word as the name of our job
   # hubot rundeck ad-hoc <name> <nodename>
   robot.respond /(?:rd|rundeck) (?:ad[ -]?hoc) ([\w -_]+) ([\w-]+)/i, (msg) ->
-    name = msg.match[1]
+    name = msg.match[1].trim()
     params = { argString: "-nodename #{msg.match[2].trim().toLowerCase()}" }
     query = "?#{querystring.stringify(params)}"
 
